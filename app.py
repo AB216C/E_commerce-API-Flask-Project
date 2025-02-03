@@ -1,3 +1,6 @@
+
+#pip install Flask Flask-SQLAlchemy Flask-Marshmallow mysql-connector-python marshmallow-sqlalchemy
+
 from flask import Flask,request,jsonify
 from flask_sqlalchemy import SQLAlchemy
 from flask_marshmallow import Marshmallow
@@ -257,18 +260,20 @@ def delete_product(id):
 # #DELETE /orders/<order_id>/remove_product: Remove a product from an order
 # @app.route('/orders/<int:id>', methods=['DELETE'])
 
-# def delete_product(id):
-#     order= db.session.get(Product,id)
+def delete_product(id):
+    order= db.session.get(Product,id)
 
-#     if not order:
-#       return jsonify({"message":"Invalid product id"}),400
+    if not order:
+      return jsonify({"message":"Invalid product id"}),400
     
-#     db.session.delete(order)
-#     db.session.commit()
-#     return jsonify({"Messagge":f"Deleted product: {id}"}),200
+    db.session.delete(order)
+    db.session.commit()
+    return jsonify({"Messagge":f"Deleted product: {id}"}),200
 
 if __name__ == "__main__":
   with app.app_context():
     db.create_all()
   app.run(debug=True)
+
+
 
