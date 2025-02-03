@@ -5,6 +5,7 @@ from marshmallow import ValidationError
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column, relationship
 from sqlalchemy import ForeignKey,Table, String, Column,DateTime, func, select, Date
 from typing import List
+from datetime import date
 
 app = Flask(__name__)
 
@@ -37,7 +38,7 @@ order_product = Table(
 class Order(Base):
   __tablename__ = "orders"
   order_id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
-  order_date = mapped_column(DateTime, default=func.now())
+  order_date:Mapped[date] = mapped_column(Date, nullable=False)
   user_id: Mapped[int] = mapped_column(ForeignKey('users.user_id'))
   
   buyer: Mapped["User"] = relationship(back_populates="orders")
@@ -97,7 +98,7 @@ def get_users():
   users = db.session.execute(query).scalars().all()
   return users_schema.dump(users),200
 
-#This route and function has ability to retrive a specific using id.
+#This route and function has ability to retrive a specific user information using id.
 @app.route('/users/<int:id>', methods=['GET'])
 def get_user(id):
     user = db.session.get(User, id)
@@ -137,7 +138,7 @@ def delete_user(id):
     return jsonify({"Messagge":f"Deleted user: {id}"}),200
 
 #=============== PRODUCT END POINTS =========================
-# #This function can be used to add multiple product to the API
+#This function can be used to add multiple products to the API
 
 @app.route("/product", methods=['POST'])
 def create_product():
@@ -153,7 +154,7 @@ def create_product():
   return product_schema.dumps(new_product),201
 
 
-# #The route/function below has ability to retrieve all product added to the API in JSON format.
+#The route/function below has ability to retrieve all products added to the API in JSON format.
 @app.route("/products", methods = ['GET'])
 
 def get_products():
@@ -162,14 +163,14 @@ def get_products():
   return products_schema.dump(products),200
 
 
-# #This route and function has ability to retrive a specific using id.
+#This route and function has ability to retrieve a product using specific id.
 @app.route('/products/<int:id>', methods=['GET'])
 def get_product(id):
     product = db.session.get(Product, id)
     return product_schema.jsonify(product), 200
 
 
-# #This route and function has ability to update name, address, or email of a specific product based on the assigned id
+#This route and function has ability to update product's name and price using id
 @app.route('/product/<int:id>', methods=['PUT'])
 
 def update_product(id):
@@ -189,7 +190,6 @@ def update_product(id):
   db.session.commit()
   return product_schema.jsonify(product),200
 
-
 #Deleting products based on product id
 @app.route('/products/<int:id>', methods=['DELETE'])
 
@@ -203,6 +203,69 @@ def delete_product(id):
     db.session.commit()
     return jsonify({"Messagge":f"Deleted product: {id}"}),200
 
+
+
+# #=======ORDER END POINTS=====================
+# POST /orders: Create a new order (requires user ID and order date)
+
+# @app.route("/order", methods=['POST'])
+
+# def create_order():
+#   try:
+#     new_order = order_schema.load(request.json)
+#   except ValidationError as e:
+#     return jsonify(e.messages),400
+
+#   order = Order(order_date=new_order['order_date'])
+#   db.session.add(order)
+#   db.session.commit()
+
+#   return user_schema.dumps(new_order),201
+
+
+
+# # GET /orders/<order_id>/add_product/<product_id>: Add a product to an order (prevent duplicates)
+
+# @app.route("/orders", methods = ['GET'])
+
+# def add_product():
+#   query = select(Order)
+#   orders = db.session.execute(query).scalars().all()
+#   return orders_schema.dump(orders),200
+
+
+
+# #GET /orders/user/<user_id>: Get all orders for a user
+
+# @app.route('/orders/<int:id>', methods=['GET'])
+# def get_orders(id):
+#     order = db.session.get(Order, id)
+#     return order_schema.jsonify(order), 200
+
+
+
+# #GET /orders/<order_id>/products: Get all products for an order
+
+# @app.route('/orders/<int:id>', methods=['GET'])
+# def get_products(id):
+#     order = db.session.get(Order, id)
+#     return order_schema.jsonify(order), 200
+
+
+
+
+# #DELETE /orders/<order_id>/remove_product: Remove a product from an order
+# @app.route('/orders/<int:id>', methods=['DELETE'])
+
+# def delete_product(id):
+#     order= db.session.get(Product,id)
+
+#     if not order:
+#       return jsonify({"message":"Invalid product id"}),400
+    
+#     db.session.delete(order)
+#     db.session.commit()
+#     return jsonify({"Messagge":f"Deleted product: {id}"}),200
 
 if __name__ == "__main__":
   with app.app_context():
